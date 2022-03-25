@@ -3,12 +3,13 @@ const {validator, profileModel, connectDb} = require('../model/profileSchema');
 // this creates a user profile 
 const createProfile = async (req, res) => {
 
-  const {error, value} = validator.validate(req.body);
-  if(error){
-    res.status(400).send(error);
-    return;
-  }
   try {
+    //validating the request body using joi library
+    const {error, value} = validator.validate(req.body);
+    if(error){
+      res.status(400).send(error);
+      return;
+    }
     const profile = new profileModel(value);
     const resp = await profile.save();
     res.send(resp);
@@ -21,8 +22,8 @@ const createProfile = async (req, res) => {
 //this gets a user based on supplied id
 const getProfile = async (req, res) => {
 
-  const id = req.params.id;
   try {
+    const id = req.params.id;
     const resp = await profileModel.find({"_id": id});
     if(resp.length < 1) {
       res.send('no user found');
@@ -53,10 +54,10 @@ const getAllProfiles = async (req, res) => {
 //this deletes a user using an id
 const deleteProfile = async (req, res) => {
 
-  const id = req.params.id;
   try {
+    const id = req.params.id;
     const resp = await profileModel.deleteOne({"_id": id});
-    console.log(resp);
+    // console.log(resp);
     if(resp.deletedCount === 1) {
       res.send('deleted');
       return;
@@ -71,17 +72,18 @@ const deleteProfile = async (req, res) => {
 //this updates user data
 const updateProfile = async (req, res) => {
 
-  const id = req.params.id;
-  const {error, value} = validator.validate(req.body);
-  if(error) {
-    res.status(400).send(error);
-    return;
-  }
   try{
-    const resp = await profileModel.findByIdAndUpdate(id, value);
-    console.log(resp);
-    res.send(resp);
+    const id = req.params.id;
 
+    //validating the request body using joi library
+    const {error, value} = validator.validate(req.body);
+    if(error) {
+      res.status(400).send(error);
+      return;
+    }
+    const resp = await profileModel.findByIdAndUpdate(id, value);
+    // console.log(resp);
+    res.send(resp);
   } catch(err) {
     res.send(err);
   }
@@ -90,16 +92,18 @@ const updateProfile = async (req, res) => {
 //this searches a profile based on a key and value
 const searchProfile = async (req, res) => {
 
-  const {key, value} = req.queryParam;
-  let resp;
   try {
+    const {key, value} = req.query;
+    let resp;
     if(key === 'firstName') {
       resp = await profileModel.find({firstName: value});
     }else if(key === 'lastName') {
       resp = await profileModel.find({lastName: value});
+    }else {
+      res.send('supply a valid key');
     }
     res.send(resp);
-    res.send('search Profile');
+    return;
   } catch(err) {
     res.send(err);
   }
